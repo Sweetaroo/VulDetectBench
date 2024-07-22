@@ -112,24 +112,30 @@ def task2_se(sys : str, gold : str):
     Returns:
         float:strict score model gets on this sample.
     """
+    answer=''
     gold = gold.split('|')
     answers = [gold[0][0], gold[1][0]]
     score_a = 0
-    if (answers[0] + '.') in sys:
-        score_a += 1
     if (answers[1] + '.') in sys:
         score_a += 0.5
+        answer=answers[1]
+    if (answers[0] + '.') in sys:
+        score_a += 1
+        answer=answers[0]
     if score_a==1.5:
         score_a=0
+        answer=''
     score_b = 0
     if task2_hit(sys, gold[0]) > 0:
         score_b += 1
+        answer=answers[0]
     if task2_hit(sys, gold[1]) > 0:
         score_b += 0.5
+        answer=answers[1]
     if score_b==1.5:
         score_b=0
-        
-    return max(score_a, score_b)
+        answer=''
+    return max(score_a, score_b),answer
 
 def task2_me(sys,gold):
     """
@@ -147,14 +153,21 @@ def task2_me(sys,gold):
     answers = [gold[0][0], gold[1][0]]
     score_a = 0
     
-    if (answers[0] + '.') in sys or (answers[1] + '.') in sys:
+    if (answers[0] + '.') in sys :
         score_a = 1
-    
+        answer=answers[0]
+    elif (answers[1] + '.') in sys:
+        score_a=1
+        answer=answers[1]
     score_b = 0
-    if task2_hit(sys, gold[0]) > 0 or task2_hit(sys, gold[1]) > 0:
+    if task2_hit(sys, gold[0]) > 0:
         score_b = 1
+        answer=answers[0]
+    elif task2_hit(sys, gold[1]) > 0:
+        score_b=1
+        answer=answers[1]
             
-    return max(score_a, score_b)
+    return max(score_a, score_b),answer
 
 def task2_avg_score(scores):
     """
@@ -184,8 +197,9 @@ def task3_single_metric(sys,gold):
     gold_tokens=gold.split()
     sys_tokens=word_tokenize(sys)
     hit_tokens=[token for token in sys_tokens if token in gold_tokens]
+    
     recall=hit_tokens/gold_tokens
-    return recall,len(hit_tokens),len(gold_tokens)
+    return hit_tokens,recall,len(hit_tokens),len(gold_tokens)
     
 def task3_mar(recalls):
     """
@@ -227,13 +241,13 @@ def task45_eval_code_similarity(sys:str,gold:str):
     """
     # re compile pattern for code
     pattern = re.compile(r"`(.+?)`", re.S)
-    code1 = pattern.findall(sys)
-    code2 = pattern.findall(gold)
+    sys_code=code1 = pattern.findall(sys)
+    gold_code=code2 = pattern.findall(gold)
     if len(code1) == 0 or len(code2) == 0:
         return 0
     code1 = code1[0].split('\n')
     if len(code1) == 0:
-        return 0
+        return set(),set(),0
     code1 = [x.strip().replace(" ", "") for x in code1]
     code1 = [x for x in code1 if x not in ["c", "cpp", "python"]]
     code1 = list(filter(None, code1))
@@ -247,7 +261,7 @@ def task45_eval_code_similarity(sys:str,gold:str):
     
     intersection = len(s1.intersection(s2))
     union = len(s1.union(s2))
-    return intersection,union,len(s2)
+    return intersection,union,len(s2),sys_code
        
 def task45_urs(sys,gold):
     """
@@ -260,8 +274,8 @@ def task45_urs(sys,gold):
     Returns:
         float:URS on the specific sample.
     """
-    intersection_len,union_len,gold_len=task45_eval_code_similarity(sys,gold)
-    return intersection_len/union_len
+    intersection_len,union_len,gold_len,sys_code=task45_eval_code_similarity(sys,gold)
+    return intersection_len/union_len,sys_code
 
 def task45_ors(sys,gold):
     """
@@ -274,8 +288,8 @@ def task45_ors(sys,gold):
     Returns:
         float:ORS on the specific sample.
     """
-    intersection_len,union_len,gold_len=task45_eval_code_similarity(sys,gold)
-    return intersection_len/gold_len
+    intersection_len,union_len,gold_len,sys_code=task45_eval_code_similarity(sys,gold)
+    return intersection_len/gold_len,sys_code
 
 def task45_avg_score(scores):
     """
