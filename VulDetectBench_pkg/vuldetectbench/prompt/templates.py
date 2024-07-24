@@ -1,6 +1,6 @@
 from liquid import Template
 
-general_prompt=Template("{{ question }}\n{{ code }}\n{{ restriction }}")
+
 
 task_templates={
     "Task1":{
@@ -41,6 +41,7 @@ task_templates={
 }
 
 def format_dataset(task_name,raw_dataset):
+    general_prompt=Template("{{ question }}\n{{ code }}\n{{ restriction }}")
     dataset=[]
     template=task_templates[task_name]
     for raw_sample in raw_dataset:
