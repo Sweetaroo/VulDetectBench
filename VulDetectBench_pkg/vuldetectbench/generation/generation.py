@@ -1,9 +1,9 @@
-from prompt import task_templates,format_dataset
-import utils.metrics as metrics_lib 
+from vuldetectbench.prompt import format_dataset
+import vuldetectbench.utils.metrics as metrics_lib 
 import json
 import os
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional,Union, List
 from tqdm import tqdm
 
 class TaskItem:
@@ -23,10 +23,10 @@ class TaskItem:
         return self
     
     def __next__(self):
-        if self.current_index >= len(self.dataset):
+        if self.current_data_index >= len(self.dataset):
             raise StopIteration
         
-        data_item = self.dataset[self.current_index]
+        data_item = self.dataset[self.current_data_index]
         id=data_item['id']
         question={
             'system':data_item['system'],
@@ -34,29 +34,37 @@ class TaskItem:
         }
         answer=data_item['answer']
         
-        self.current_index += 1
+        self.current_data_index += 1
         return id,question,answer
     
-
 class Tasks:
-    def __init__(self,data_dir=None,task_no=None):
+    def __init__(self,data_dir=None,task_no:Union[int,List[int],None]=None):
         if task_no==None:
             self.task_no=[1,2,3,4,5]
-        else:
+        elif type(task_no)==int:
             self.task_no=[task_no]
+        elif type(task_no)==list:
+            if any(n > 5 or n < 1 for n in task_no):
+                raise ValueError('task number list must not contain any index above 5 or under 1.')
+            else:
+                self.task_no=task_no
+        
         self.data_dir=data_dir
         self.task_names=[f'Task{task_no}'for task_no in self.task_no ]
+        self.task_info=self._get_task_info()
         self.tasks=self._form_tasks()
         pass
     
-    def _get_task_info(self,task_templates=task_templates):
+    def _get_task_info(self):
+        from vuldetectbench.prompt import task_templates
         # self.task_name
-        task_info=[task_templates[name] for name in self.task_name]
-            
+        task_info=[task_templates[name] for name in self.task_names]
+        # task_info=[None]+task_info # placebo
         return task_info
     
     def _load_dataset(self,task_no):
-        with open(os.path.join(self.data_dir,'test',f'task{task_no}_code.jsonl'),'r')as f:
+        with open(os.path.join(self.data_dir,f'task{task_no}_code.jsonl'),'r',encoding='utf-8')as f:
+            print(task_no)
             raw_dataset=[json.loads(line) for line in f.readlines()]
             return raw_dataset
     
@@ -73,35 +81,47 @@ class Tasks:
         return:a list of object Task
         """
         all_tasks=[]
-        for no in self.task_no:           
-            dataset=self.form_dataset(no)
+        for no in range(len(self.task_no)):          
+            dataset=self._form_dataset(self.task_no[no])
             task=TaskItem(name=self.task_info[no]['Name'],dataset=dataset,metric_list=self.task_info[no]['metrics'])
             all_tasks.append(task)
         
         return all_tasks
-            
-       
-
-class Agent:
-    # currently, batch size is fixed to 1.
-    def __init__(self,tokenizer_path=None,
-                 model_path=None,
-                 api_key=None):
-        pass
     
+    def __len__(self):
+        return len(self.tasks)
+    
+    def __iter__(self):
+        self.task_idx=0
+        return self
+    
+    def __next__(self):
+        if self.task_idx >= len(self.tasks):
+            raise StopIteration
+        
+        task=self.tasks[self.task_idx]
+        self.task_idx+=1
+        return task
+        
+
+class Agent(ABC):
+    # currently, batch size is fixed to 1.
+    def __init__(self):
+        pass
+
     @abstractmethod
-    def __call__(self,prompt):
+    def __call__(self, prompt):
         """
         input:
         {
-            "system":str,
-            "user":str
+            "system": str,
+            "user": str
         }
-        return:answer to the query(str)    
+        return: answer to the query (str)
         """
         pass
     
- # preprocessing done.TODO:evaluation code.
+
 class Evaluator:
     # calculating and preserving metrics
     def __init__(self,answer_list,metric_dirs):
@@ -114,21 +134,35 @@ class Evaluator:
     
     def _choose_func(self,metric_list):
         # choose eval funcs correspondent to metric str.
-        from utils.metrics import MetricsMapping as mm
+        from vuldetectbench.utils.metrics import MetricsMapping as mm
         return [mm[name] for name in metric_list]
     
     def _extract_single_metrics(self,single_metric,metric_name):
         # extract stable single metrics
         # *scalable function.
         if metric_name == 'hit':
-            if single_metric == (1,0,0,0):
-                return "1"
+            if single_metric == (1,0,0,0) or single_metric == (0,0,1,0):
+                return 1
             else:
-                return "0"
+                return 0
         elif metric_name == 'Token Recall':
             return single_metric[0]
         else:
             return single_metric
+        
+    
+    def remove_duplicate_metrics(self,data):
+        seen_metrics = set()
+        unique_data = []
+        
+        for item in data:
+            metric = item['single metric']
+            if metric not in seen_metrics:
+                seen_metrics.add(metric)
+                unique_data.append(item)
+        
+        return unique_data
+
     
     def eval(self):
         """
@@ -156,7 +190,7 @@ class Evaluator:
         for pair in self.answer_list:
             id=pair['id']
             metrics=[]
-            for func_idx in len(self.metric_names['single']):
+            for func_idx in range(len(self.metric_names['single'])):
                 # single metric
                 # single and overall metric from the same perspective share idx.
                 single_func=self.metric_funcs['single'][func_idx]
@@ -171,16 +205,18 @@ class Evaluator:
                 }
                 metrics.append(metric)
                 overall_scores[func_idx].append(score)
-            
+                
+            metrics=self.remove_duplicate_metrics(metrics)   # dedup
             # verbose list
             verbose_list.append({
                 'id':id,
                 'gold':pair['gold'],
                 'metrics':metrics
             })
+        
         # calculate overall metrics
         overall_metric_list=[]
-        for func_idx in len(self.metric_names['overall']):
+        for func_idx in range(len(self.metric_names['overall'])):
             overall_func=self.metric_funcs['overall'][func_idx]
             overall_name=self.metric_names['overall'][func_idx]
             scores=overall_scores[func_idx]
@@ -205,7 +241,7 @@ class VulDetectBench_Engine:
         save_path : Optional[str] = None,
         
     ):
-        self.model=model,
+        self.model=model
         self.tasks=task_and_metrics
         self.verbose=verbose
         self.save_path=save_path
@@ -218,6 +254,7 @@ class VulDetectBench_Engine:
         """
         answer_list=[]
         for id,prompt,gold in tqdm(task,desc='generating results'):
+            
             sys_answer=self.model(prompt)
             answer_list.append({
                 'id': id,      # need to keep id
@@ -269,8 +306,6 @@ class VulDetectBench_Engine:
                 os.makedirs(self.save_path)
             result_name='evaluation_report.json'
             result_path=os.path.join(self.save_path,result_name)
-            with open(result_path)as f:
-                json.dump(metric_repos,f)
+            with open(result_path,'w',encoding='utf-8')as f:
+                json.dump(metric_repos,f,indent=2)
                 print(f'evaluation reports saved to {result_path}')
-                
-        

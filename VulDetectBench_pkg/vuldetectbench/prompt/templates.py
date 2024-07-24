@@ -9,7 +9,7 @@ task_templates={
         "question":"Is the code vulnerable?(YES/NO)",
         "restriction":"Your answer should either be 'YES' or 'NO' only.",
         "metrics":{
-            "single" : ['hit'],
+            "single" : ['hit','hit'],
             "overall" : ['Accuracy','F1-Score']
             }
     },
@@ -29,8 +29,8 @@ task_templates={
         "question":"What data objects and functions in the code may lead to vulnerability?",
         "restriction":"output data objects and functions in the format: `{code}` if your answer contains any.",
         "metrics":{
-            "single" : ['Token Recall'],
-            "overall" : ['Macro Token Recall','Micro Token  Recall']
+            "single" : ['Token Recall','Token Recall'],
+            "overall" : ['Macro Token Recall','Micro Token Recall']
         }
             
     },
@@ -60,17 +60,18 @@ task_templates={
 def format_dataset(task_name,raw_dataset):
     general_prompt=Template("{{ question }}\n{{ code }}\n{{ restriction }}")
     dataset=[]
+    
     template=task_templates[task_name]
     for raw_sample in raw_dataset:
         if task_name=='Task2':
             user_prompt=general_prompt.render(question=template['question'],
-                                              code=raw_sample['selections']+raw_sample['code'],restriction=template['restriction'])   
+                                              code=raw_sample['selection']+raw_sample['code'],restriction=template['restriction'])   
         else:
             user_prompt=general_prompt.render(question=template['question'],
                                               code=raw_sample['code'],
                                               restriction=template['restriction'])   
         dataset.append({
-            'id':raw_sample['id'],
+            'id':raw_sample['idx'],
             'system':template['system'],
             'user':user_prompt,
             'answer':raw_sample['answer']

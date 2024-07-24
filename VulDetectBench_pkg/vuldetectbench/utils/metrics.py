@@ -17,18 +17,21 @@ def task1_hit(sys,gold):
         - tn: True Negative
         - fn: False Negative
     """
-    
+    sys_code=''
     if 'yes' in sys.lower() or 'is vulnerable' in sys.lower():
         sys_token=1
+        sys_code='YES'
     else:
         sys_token=0
-        
+        sys_code='NO'
+
     if 'yes' in gold.lower() or 'is vulnerable' in gold.lower():
         gold_token=1
+        
     else:
         gold_token=0
     
-    tp,fp,tn,fn=0
+    tp=fp=tn=fn=0
     if sys_token==1 and gold_token==1:
         tp=1
     elif sys_token==1 and gold_token==0:
@@ -37,7 +40,7 @@ def task1_hit(sys,gold):
         fn=1
     else:
         tn=1
-    return tp,fp,tn,fn
+    return (tp,fp,tn,fn),sys_code
     
 def task1_acc(scores):
     """
@@ -49,11 +52,15 @@ def task1_acc(scores):
     Returns:
         float:overall accuracy on task1.
     """
+    tps=[item[0] for item in scores]
+    fps=[item[1] for item in scores]
+    tns=[item[2] for item in scores]
+    fns=[item[3] for item in scores]
     #[[tps],[fps],[tns],[fns]]
-    TP=sum(scores[0])
-    FP=sum(scores[1])
-    TN=sum(scores[2])
-    FN=sum(scores[3])
+    TP=sum(tps)
+    FP=sum(fps)
+    TN=sum(tns)
+    FN=sum(fns)
     acc=(TP+TN)/(TP+FP+TN+FN)
     return acc
 
@@ -68,13 +75,23 @@ def task1_f1(scores):
         float:overall f1-score on task1.
     """
     
-    TP=sum(scores[0])
-    FP=sum(scores[1])
-    TN=sum(scores[2])
-    FN=sum(scores[3])
-    p=TP/(TP+FN)
-    r=TP/(TP+FP)
-    f1=2*(p*r)/(p+r)
+    tps=[item[0] for item in scores]
+    fps=[item[1] for item in scores]
+    tns=[item[2] for item in scores]
+    fns=[item[3] for item in scores]
+    #[[tps],[fps],[tns],[fns]]
+    TP=sum(tps)
+    FP=sum(fps)
+    TN=sum(tns)
+    FN=sum(fns)
+    
+    try:
+        p=TP/(TP+FN)
+        r=TP/(TP+FP)
+        f1=2*(p*r)/(p+r)
+    except ZeroDivisionError:
+        f1=0
+
     return f1
 
 def task2_hit(sys : str, gold : str):
@@ -210,7 +227,7 @@ def task3_single_metric(sys,gold):
     sys_tokens=word_tokenize(sys)
     hit_tokens=[token for token in sys_tokens if token in gold_tokens]
     sys_code=' '.join(hit_tokens)
-    recall=hit_tokens/gold_tokens
+    recall=len(hit_tokens)/len(gold_tokens)
     return (recall,len(hit_tokens),len(gold_tokens)),sys_code
 
 
@@ -256,9 +273,14 @@ def task45_eval_code_similarity(sys:str,gold:str):
         - Number of lines in expected code snippets
     """
     # re compile pattern for code
-    pattern = re.compile(r"`(.+?)`", re.S)
+    pattern = re.compile(r"`{3}(.+?)`{3}|`(.+?)`", re.S)
     sys_code=code1 = pattern.findall(sys)
+    sys_code=code1=list(filter(lambda x: x, map(lambda match: match[0] if match[0] else match[1], code1)))
+    sys_code='\n'.join(sys_code)
+    print(sys_code)
     gold_code=code2 = pattern.findall(gold)
+    gold_code=code2=list(filter(lambda x: x, map(lambda match: match[0] if match[0] else match[1], code1)))
+    gold_code='\n'.join(gold_code)
     if len(code1) == 0 or len(code2) == 0:
         return 0
     code1 = code1[0].split('\n')
