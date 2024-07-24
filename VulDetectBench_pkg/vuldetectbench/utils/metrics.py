@@ -39,39 +39,39 @@ def task1_hit(sys,gold):
         tn=1
     return tp,fp,tn,fn
     
-def task1_acc(hit_record):
+def task1_acc(scores):
     """
     Calculating the overall accuracy in task1:vulnerability existence detection.
     
     Args:
-        hit_record(list of integer lists):containing model prediction situation in each sample,in the form of [[tps],[fps],[tns],[fns]]
+        scores(list of integer lists):containing model prediction situation in each sample,in the form of [[tps],[fps],[tns],[fns]]
         
     Returns:
         float:overall accuracy on task1.
     """
     #[[tps],[fps],[tns],[fns]]
-    TP=sum(hit_record[0])
-    FP=sum(hit_record[1])
-    TN=sum(hit_record[2])
-    FN=sum(hit_record[3])
+    TP=sum(scores[0])
+    FP=sum(scores[1])
+    TN=sum(scores[2])
+    FN=sum(scores[3])
     acc=(TP+TN)/(TP+FP+TN+FN)
     return acc
 
-def task1_f1(hit_record):
+def task1_f1(scores):
     """
     Calculating the overall f1-score in task1:vulnerability existence detection.
     
     Args:
-        hit_record(list of integer lists):containing model prediction situation in each sample,in the form of [[tps],[fps],[tns],[fns]]
+        scores(list of integer lists):containing model prediction situation in each sample,in the form of [[tps],[fps],[tns],[fns]]
         
     Returns:
         float:overall f1-score on task1.
     """
     
-    TP=sum(hit_record[0])
-    FP=sum(hit_record[1])
-    TN=sum(hit_record[2])
-    FN=sum(hit_record[3])
+    TP=sum(scores[0])
+    FP=sum(scores[1])
+    TN=sum(scores[2])
+    FN=sum(scores[3])
     p=TP/(TP+FN)
     r=TP/(TP+FP)
     f1=2*(p*r)/(p+r)
@@ -112,30 +112,30 @@ def task2_se(sys : str, gold : str):
     Returns:
         float:strict score model gets on this sample.
     """
-    answer=''
+    sys_code=''
     gold = gold.split('|')
     answers = [gold[0][0], gold[1][0]]
     score_a = 0
     if (answers[1] + '.') in sys:
         score_a += 0.5
-        answer=answers[1]
+        sys_code=answers[1]
     if (answers[0] + '.') in sys:
         score_a += 1
-        answer=answers[0]
+        sys_code=answers[0]
     if score_a==1.5:
         score_a=0
-        answer=''
+        sys_code=''
     score_b = 0
     if task2_hit(sys, gold[0]) > 0:
         score_b += 1
-        answer=answers[0]
+        sys_code=answers[0]
     if task2_hit(sys, gold[1]) > 0:
         score_b += 0.5
-        answer=answers[1]
+        sys_code=answers[1]
     if score_b==1.5:
         score_b=0
-        answer=''
-    return max(score_a, score_b),answer
+        sys_code=''
+    return max(score_a, score_b),sys_code
 
 def task2_me(sys,gold):
     """
@@ -152,24 +152,36 @@ def task2_me(sys,gold):
     gold = gold.split('|')
     answers = [gold[0][0], gold[1][0]]
     score_a = 0
-    
+    sys_code=''
     if (answers[0] + '.') in sys :
         score_a = 1
-        answer=answers[0]
+        sys_code=answers[0]
     elif (answers[1] + '.') in sys:
         score_a=1
-        answer=answers[1]
+        sys_code=answers[1]
     score_b = 0
     if task2_hit(sys, gold[0]) > 0:
         score_b = 1
-        answer=answers[0]
+        sys_code=answers[0]
     elif task2_hit(sys, gold[1]) > 0:
         score_b=1
-        answer=answers[1]
+        sys_code=answers[1]
             
-    return max(score_a, score_b),answer
+    return max(score_a, score_b),sys_code
 
-def task2_avg_score(scores):
+def task2_avg_se(scores):
+    """
+    Calculating average ME or SE on the entire task2 benchmark.
+        
+    Args:
+        scores(list of floats):A list of scores model gets on each sample of task2.
+        
+    Returns:
+        float:the average score on task2.
+    """
+    return sum(scores)/len(scores)
+
+def task2_avg_me(scores):
     """
     Calculating average ME or SE on the entire task2 benchmark.
         
@@ -197,23 +209,25 @@ def task3_single_metric(sys,gold):
     gold_tokens=gold.split()
     sys_tokens=word_tokenize(sys)
     hit_tokens=[token for token in sys_tokens if token in gold_tokens]
-    
+    sys_code=' '.join(hit_tokens)
     recall=hit_tokens/gold_tokens
-    return hit_tokens,recall,len(hit_tokens),len(gold_tokens)
-    
-def task3_mar(recalls):
+    return (recall,len(hit_tokens),len(gold_tokens)),sys_code
+
+
+def task3_mar(scores):
     """
     Calculating Macro average Recall(MAR) on the entire task3.
     
     Args:
-        recalls(list of floats):token recall on each sample of task3.
+        scores(list of tuples):(recall,len(hit_tokens),len(gold_tokens))
         
     Returns:
         float:overall MAR of task3.
     """
+    recalls=[item[0] for item in scores]
     return sum(recalls)/len(recalls)
 
-def task3_mir(hit_lens,gold_lens):
+def task3_mir(scores):
     """
     Calculating Micro average Recall(MIR) on the entire task3.
     
@@ -224,6 +238,8 @@ def task3_mir(hit_lens,gold_lens):
     Returns:
         float:overall MIR of task3.
     """
+    hit_lens=[item[1] for item in scores]
+    gold_lens=[item[2] for item in scores]
     return sum(hit_lens)/sum(gold_lens)
 
 def task45_eval_code_similarity(sys:str,gold:str):
@@ -291,7 +307,7 @@ def task45_ors(sys,gold):
     intersection_len,union_len,gold_len,sys_code=task45_eval_code_similarity(sys,gold)
     return intersection_len/gold_len,sys_code
 
-def task45_avg_score(scores):
+def task45_avg_urs(scores):
     """
     Calculating average ORS or URS on the entire task4/5 benchmark
     
@@ -303,13 +319,31 @@ def task45_avg_score(scores):
     """
     return sum(scores)/len(scores)
 
-metrics_mapping={
+def task45_avg_ors(scores):
+    """
+    Calculating average ORS or URS on the entire task4/5 benchmark
+    
+    Args:
+        scores(list):a list of ORSs or URSs on each specific sample in task5.
+        
+    Returns:
+        float:average ORS or URS
+    """
+    return sum(scores)/len(scores)
+
+MetricsMapping={
+    'hit':task1_hit,
     'Accuracy':task1_acc,
     'F1-Score':task1_f1,
     'Moderate Evaluation Score':task2_me,
     'Strict Evaluation Score':task2_se,
-    'Macro Recall':task3_mar,
-    'Micro Recall':task3_mir,
+    'Avg Moderate Evaluation Score':task2_avg_me,
+    'Avg Strict Evaluation Score':task2_avg_se,
+    'Token Recall':task3_single_metric,
+    'Macro Token Recall':task3_mar,
+    'Micro Token Recall':task3_mir,
     'Union Line Recall':task45_urs,
-    'Line Recall':task45_ors
+    'Line Recall':task45_ors,
+    'Avg Union Line Recall':task45_avg_urs,
+    'Avg Line Recall':task45_avg_ors
 }

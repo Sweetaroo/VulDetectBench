@@ -1,13 +1,10 @@
-# 代码结构
-# 数据集转化为prompt的工具
-# prompt输送给模型，模型输出
-# 输出的测试
-# 要实现的基本工具
 from prompt import task_templates,format_dataset
-from utils.metrics import *
+import utils.metrics as metrics_lib 
 import json
 import os
 from abc import ABC, abstractmethod
+from typing import Optional
+from tqdm import tqdm
 
 class TaskItem:
     # implementation of single task curation
@@ -15,6 +12,8 @@ class TaskItem:
         self.task_name=name
         self.dataset=dataset
         self.metrics=metric_list
+        assert len(metric_list['single'])==len(metric_list['overall']) , \
+            f"Initialization failed in task {self.task_name}:number of single metric and overall metric must match.Got {len(metric_list['single'])} single metrics and {len(metric_list['overall'])} overall metrics."
         
     def __len__(self):
         return len(self.dataset)
@@ -28,6 +27,7 @@ class TaskItem:
             raise StopIteration
         
         data_item = self.dataset[self.current_index]
+        id=data_item['id']
         question={
             'system':data_item['system'],
             'user':data_item['user']
@@ -35,7 +35,7 @@ class TaskItem:
         answer=data_item['answer']
         
         self.current_index += 1
-        return question,answer
+        return id,question,answer
     
 
 class Tasks:
@@ -73,7 +73,7 @@ class Tasks:
         return:a list of object Task
         """
         all_tasks=[]
-        for no in self.task_no           
+        for no in self.task_no:           
             dataset=self.form_dataset(no)
             task=TaskItem(name=self.task_info[no]['Name'],dataset=dataset,metric_list=self.task_info[no]['metrics'])
             all_tasks.append(task)
@@ -102,23 +102,175 @@ class Agent:
         pass
     
  # preprocessing done.TODO:evaluation code.
- 
-class VulDetectBench:
-    def __init__():
+class Evaluator:
+    # calculating and preserving metrics
+    def __init__(self,answer_list,metric_dirs):
+        self.metric_names=metric_dirs
+        self.metric_funcs={
+            "single":self._choose_func(self.metric_names['single']),
+            "overall":self._choose_func(self.metric_names['overall']),
+        }
+        self.answer_list=answer_list
+    
+    def _choose_func(self,metric_list):
+        # choose eval funcs correspondent to metric str.
+        from utils.metrics import MetricsMapping as mm
+        return [mm[name] for name in metric_list]
+    
+    def _extract_single_metrics(self,single_metric,metric_name):
+        # extract stable single metrics
+        # *scalable function.
+        if metric_name == 'hit':
+            if single_metric == (1,0,0,0):
+                return "1"
+            else:
+                return "0"
+        elif metric_name == 'Token Recall':
+            return single_metric[0]
+        else:
+            return single_metric
+    
+    def eval(self):
+        """
+        repo={
+            'task name':...,
+            'verbose':[{
+            'id':...,
+            'gold':...，
+            'metrics':[{
+                'single name':...,
+                'extracted_sys':...,
+                'metric':...
+            },...]
+                    }],
+            'overall metric':{
+                f"metric1":score,
+                f"metric2":score
+            }
+        }
+        """
+        verbose_list=[]  
+        
+        overall_scores=[[]]*len(self.metric_names['overall'])
+        
+        for pair in self.answer_list:
+            id=pair['id']
+            metrics=[]
+            for func_idx in len(self.metric_names['single']):
+                # single metric
+                # single and overall metric from the same perspective share idx.
+                single_func=self.metric_funcs['single'][func_idx]
+                single_name=self.metric_names['single'][func_idx]
+                score,filtered_answer=single_func(pair['sys'],pair['gold'])
+                single_metric=self._extract_single_metrics(score,metric_name=single_name)
+                overall_scores.append(score)
+                metric={
+                    'single metric':single_name,
+                    'extracted answer':filtered_answer,
+                    'score':single_metric
+                }
+                metrics.append(metric)
+                overall_scores[func_idx].append(score)
+            
+            # verbose list
+            verbose_list.append({
+                'id':id,
+                'gold':pair['gold'],
+                'metrics':metrics
+            })
+        # calculate overall metrics
+        overall_metric_list=[]
+        for func_idx in len(self.metric_names['overall']):
+            overall_func=self.metric_funcs['overall'][func_idx]
+            overall_name=self.metric_names['overall'][func_idx]
+            scores=overall_scores[func_idx]
+            overall_metric=overall_func(scores)
+            overall_metric_list.append({
+                overall_name:overall_metric
+            }) 
+        
+        repo={
+            'overall metrics':overall_metric_list,
+            'verbose':verbose_list
+        }
+        
+        return repo
+            
+class VulDetectBench_Engine:
+    def __init__(
+        self,
+        model : Agent,
+        task_and_metrics : Tasks, 
+        verbose : bool = True,
+        save_path : Optional[str] = None,
+        
+    ):
+        self.model=model,
+        self.tasks=task_and_metrics
+        self.verbose=verbose
+        self.save_path=save_path
+
+    def _run_single_task(self,
+                        task:TaskItem):
+        """
+        run on single task
+        return : answer_list(list)
+        """
+        answer_list=[]
+        for id,prompt,gold in tqdm(task,desc='generating results'):
+            sys_answer=self.model(prompt)
+            answer_list.append({
+                'id': id,      # need to keep id
+                'sys':sys_answer,
+                'gold':gold
+            })
+        return answer_list
+
+    def run_all_tasks(self):
+        evaluators=[]
+        for task in self.tasks:
+            print(f'Running task : {task.task_name}')
+            metrics=task.metrics    # list
+            answer_list= self._run_single_task(task)
+            evaluators.append((task.task_name,Evaluator(answer_list,metrics)))
+        return evaluators
+        
+    def eval(self,evaluators):
+        metric_repos=[]
+        for task_name,evaluator in evaluators:
+            repo=evaluator.eval()
+            repo['task name']=task_name
+            metric_repos.append(repo)
+        return metric_repos
+    
+    def gen_final_score(self,metric_repos):
+        # maybe we need a leaderboard
         pass
-    def _run_single_task():
-        pass
-    def run_exist_detect():
-        pass
-    def run_cls():
-        pass
-    def run_root_cause_detect():
-        pass
-    def run_trigger_point_detect():
-        pass
-    def run_obj_func_detect():
-        pass
-    def eval():
-        pass
-    def save_results():
-        pass
+    
+    def simplify_repo(self,repos):
+        """
+        use it if verbose is False
+        """
+        simp_repo=dict()
+        for repo in repos:
+            simp_repo[repo['task name']]=repo['overall metric']
+        return simp_repo
+    
+    def run(self):
+        # formally run the whole bench
+        evaluators=self.run_all_tasks()
+        metric_repos=self.eval(evaluators=evaluators)
+        if self.verbose == False:
+            metric_repos=self.simplify_repo(metric_repos)
+        if self.save_path is None:
+            print(metric_repos)
+        else:
+            if os.path.exists(self.save_path) == False:
+                os.makedirs(self.save_path)
+            result_name='evaluation_report.json'
+            result_path=os.path.join(self.save_path,result_name)
+            with open(result_path)as f:
+                json.dump(metric_repos,f)
+                print(f'evaluation reports saved to {result_path}')
+                
+        
