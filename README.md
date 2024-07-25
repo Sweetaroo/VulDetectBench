@@ -12,12 +12,17 @@ VulDetectBench is a benchmark designed to evaluate the vulnerability detection c
 ## Overview
 While LLMs excel in code comprehension and generation, their ability to detect program vulnerabilities has been less explored. VulDetectBench addresses this by assessing LLMs through five increasingly difficult tasks.
 ### Dataset Curation
-<center><img width=80% alt="image" src="./images/PipeLineFinal_00.png"></center>
+
+<div style="text-align: center;">
+  <img width="80%" alt="image" src="./images/PipeLineFinal_00.png">
+</div>
 <center>VulDetectBench Curation Pipeline.</center>
 
 ### Experiment Results
 Our test results shows that **existing LLMs perform well on simple analysis tasks such as vulnerability existence detection and CWE type inference, while on specific vulnerability related tasks, although performance varies from LLM to LLM, the overall performance is not yet satisfactory.**
-<center><img width=80% alt="image" src="./images/distri_vuldet_00.png"></center>
+<div style="text-align: center;">
+  <img width="80%" alt="image" src="./images/distri_vuldet_00.png">
+</div>
 <center>Top 8 LLMs' ability on Vulnerability Detections. </center>
 
 ## VulDetectBench
@@ -31,7 +36,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 |1000|48|50|3493|
 
 ### Format
-```json
+```
 {
     "system":"Assuming you are an experienced code vulnerability analyst and the following code may have vulnerabilities.",
     "user":"Is the code vulnerable?(YES/NO)"+{code}+"Your answer should either be 'YES' or 'NO' only.",
@@ -58,7 +63,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 |500|48|265|3372|
 
 ### Format
-```json
+```
 {
     "system": "You are an outstanding code vulnerability analyst and expert in single-choice questions.You are only able to pick up 1 answer from given choices.",
     "user": "What is the vulnerability type of the code?(A/B/C/D/E)
@@ -92,7 +97,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 |100|38|1017|3269|
 
 ### Format
-```json
+```
 {
     "system":"Assuming you are an experienced code vulnerability analyst who can only output code snippets and the following code may have vulnerabilities.",
     "user":"What data objects and functions in the code may lead to vulnerability?"+{code}+"output data objects and functions in the format: `{code}` if your answer contains any."
@@ -107,8 +112,14 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 
 - For overall performance,we will show:
 
-    - `Macro Average Recall(MAR)`:$$\mathrm{MAR}=\frac{1}{n}\sum_{i=1}^n(\frac{TP_i}{TP_i+FN_i})$$
-    - `Micro Average Recall(MIR)`:$$\mathrm{MIR}=\frac{\sum_{i=1}^n TP_i}{\sum_{i=1}^n(TP_i+FP_i)}$$
+    - `Macro Average Recall(MAR)`:
+    
+    $$\mathrm{MAR}=\frac{1}{n}\sum_{i=1}^n(\frac{TP_i}{TP_i+FN_i})$$
+    
+    - `Micro Average Recall(MIR)`:
+    
+    $$\mathrm{MIR}=\frac{\sum_{i=1}^n TP_i}{\sum_{i=1}^n(TP_i+FP_i)}$$
+
 </details>
 
 <details>
@@ -120,7 +131,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 |100|38|1010|3262|
 
 ### Format
-```json
+```
 {
     "system": "Assuming you are an experienced code vulnerability analyst who can only output code snippets and the following code may have vulnerabilities.",
     "user":"Which line of code is the root cause point of the vulnerability?"+{code}"output your answer code in the format: `{code}`",
@@ -130,9 +141,13 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 
 ### Metrics
 - For a single sample,we will show:
-    - `Union line-of-code recall score(URS)`:$$\mathrm{URS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{output}\cup Line_{answer}}}$$
+    - `Union line-of-code recall score(URS)`:
+    
+    $$\mathrm{URS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{output}\cup Line_{answer}}}$$
 
-    - `Original line-of-code recall score(ORS)`:$$\mathrm{ORS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{answer}}}$$
+    - `Original line-of-code recall score(ORS)`:
+    
+    $$\mathrm{ORS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{answer}}}$$
 
 - For overall performance,we will show:
     - `Average URS` on the entire benchmark
@@ -149,7 +164,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 |100|38|1011|3363|
 
 ### Format
-```json
+```
 {
     "system": "Assuming you are an experienced code vulnerability analyst who can only output code snippets and the following code may have vulnerabilities.",
     "user":"Which line of code is the trigger point of the vulnerability?"+{code}"output your answer code in the format: `{code}`",
@@ -159,13 +174,18 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 
 ### Metrics
 - For a single sample,we will show:
-    - `Union line-of-code recall score(URS)`:$$\mathrm{URS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{output}\cup Line_{answer}}}$$
+    - `Union line-of-code recall score(URS)`:
+    
+    $$\mathrm{URS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{output}\cup Line_{answer}}}$$
 
-    - `Original line-of-code recall score(ORS)`:$$\mathrm{ORS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{answer}}}$$
+    - `Original line-of-code recall score(ORS)`:
+    
+    $$\mathrm{ORS}=\frac{\mathrm{Line_{output}\cap Line_{answer}}}{\mathrm{Line_{answer}}}$$
 
 - For overall performance,we will show:
     - `Average URS` on the entire benchmark
     - `Average ORS` on the entire benchmark
+    
 </details>
 
 ## How to use
