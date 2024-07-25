@@ -4,8 +4,8 @@
 
 VulDetectBench is a benchmark designed to evaluate the vulnerability detection capabilities of Large Language Models (LLMs). 
 
-![pypi](https://img.shields.io/badge/pypi-v0.0.4-orange)
-![Static Badge](https://img.shields.io/badge/license-MIT-green)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.4-orange)](https://pypi.org/project/vuldetectbench/)
+[![Static Badge](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 ![Static Badge](https://img.shields.io/badge/build-passing-grass)
 
 
@@ -216,7 +216,7 @@ Here's a simple explanation of the parameters:
 #### Step 4
 execute `engine.run()` to perform tasks.
 
-`./demos/gpt.py` suggests a simple demo to run VulDetectBench using GPT-3.5-Turbo API.
+[./demos/gpt.py](./demos/gpt.py) suggests a simple demo to run VulDetectBench using GPT-3.5-Turbo API.
 
 ## Reference
 If you use or reference our work,please cite our paper.
