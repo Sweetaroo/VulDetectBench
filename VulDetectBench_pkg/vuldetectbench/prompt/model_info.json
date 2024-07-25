@@ -1,0 +1,24 @@
+{
+    "api_model":[
+        "gpt4",
+        "gpt3.5",
+        "ernie",
+        "gemini-pro",
+        "mixtral-8x7b",
+        "mixtral-8x22b",
+        "llama3-70b"
+    ],
+    "local_model":[
+        "deepseek-coder-7b",
+        "qwen-1.5-7b",
+        "qwen-1.5-14b",
+        "chatglm3-6b",
+        "vicuna-13b",
+        "vicuna-7b",
+        "codellama-13b-Instruct-hf",
+        "codellama-7b-Instruct-hf",
+        "llama3-8b",
+        "llama2-7b-chat-hf",
+        "llama2-13b-chat-hf"
+    ]
+}
