@@ -17,7 +17,7 @@ While LLMs excel in code comprehension and generation, their ability to detect p
   <img width="80%" alt="image" src="./images/PipeLineFinal_00.png">
 </div>
 
-<center>VulDetectBench Curation Pipeline.</center>
+<div align=center>VulDetectBench Curation Pipeline.</div>
 
 ### Experiment Results
 Our test results shows that **existing LLMs perform well on simple analysis tasks such as vulnerability existence detection and CWE type inference, while on specific vulnerability related tasks, although performance varies from LLM to LLM, the overall performance is not yet satisfactory.**
@@ -26,7 +26,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
   <img width="80%" alt="image" src="./images/distri_vuldet_00.png">
 </div>
 
-<center>Top 8 LLMs' ability on Vulnerability Detections. </center>
+<div align=center>Top 8 LLMs' ability on Vulnerability Detections.</div>
 
 ## VulDetectBench
 
