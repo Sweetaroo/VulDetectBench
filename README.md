@@ -13,16 +13,19 @@ VulDetectBench is a benchmark designed to evaluate the vulnerability detection c
 While LLMs excel in code comprehension and generation, their ability to detect program vulnerabilities has been less explored. VulDetectBench addresses this by assessing LLMs through five increasingly difficult tasks.
 ### Dataset Curation
 
-<div style="text-align: center;">
+<div align=center>
   <img width="80%" alt="image" src="./images/PipeLineFinal_00.png">
 </div>
+
 <center>VulDetectBench Curation Pipeline.</center>
 
 ### Experiment Results
 Our test results shows that **existing LLMs perform well on simple analysis tasks such as vulnerability existence detection and CWE type inference, while on specific vulnerability related tasks, although performance varies from LLM to LLM, the overall performance is not yet satisfactory.**
-<div style="text-align: center;">
+
+<div align=center>
   <img width="80%" alt="image" src="./images/distri_vuldet_00.png">
 </div>
+
 <center>Top 8 LLMs' ability on Vulnerability Detections. </center>
 
 ## VulDetectBench
@@ -185,7 +188,7 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 - For overall performance,we will show:
     - `Average URS` on the entire benchmark
     - `Average ORS` on the entire benchmark
-    
+
 </details>
 
 ## How to use
