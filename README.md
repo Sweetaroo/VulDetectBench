@@ -194,6 +194,12 @@ Our test results shows that **existing LLMs perform well on simple analysis task
 ## How to use
 
 #### Step 1
+To get the test sets,you can clone this repository:
+
+    git clone https://github.com/Sweetaroo/VulDetectBench.git
+
+the dataset is under `VulDetectBench/dataset/test`.
+
 To install the library,you can use `pip`
     
     pip install vuldetectbench
@@ -217,6 +223,8 @@ To run the benchmarks on your model,you first need to create a subclass of class
 #### Step 3
 Create instances from class`SubAgent`,`Tasks` and `VulDetectBench_Engine`.
 ```python
+    from vuldetectbench.generation import Tasks,Agent,VulDetectBench_Engine
+
     model=SubAgent()
     
     tasks=Tasks(data_dir='...',task_no=...)

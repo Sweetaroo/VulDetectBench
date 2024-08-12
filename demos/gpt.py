@@ -1,6 +1,6 @@
 import openai
 from openai import OpenAI
-from generation import Tasks,Agent,VulDetectBench_Engine
+from vuldetectbench.generation import Tasks,Agent,VulDetectBench_Engine
 import os
 import requests
 
@@ -40,6 +40,6 @@ class OpenAIAgent(Agent):
 if __name__=='__main__':
     
     gpt_model=OpenAIAgent()
-    tasks=Tasks(data_dir='../dataset/test')
+    tasks=Tasks(data_dir='/home/fnii/workspace/vuldetectbench/VulDetectBench/dataset/test')
     engine=VulDetectBench_Engine(model=gpt_model,save_path='./',task_and_metrics=tasks)
     engine.run()
