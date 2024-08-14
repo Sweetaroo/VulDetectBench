@@ -30,16 +30,16 @@ class OpenAIAgent(Agent):
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": user_message}
             ],
-            "temperature": 0.7
+            "temperature": 0.3
         }
-
+        # print(user_message)
         response = requests.post(url, headers=headers, json=data)
-
+        # print(response)
         return response.json()['choices'][0]['message']['content']
 
 if __name__=='__main__':
     
     gpt_model=OpenAIAgent()
-    tasks=Tasks(data_dir='/home/fnii/workspace/vuldetectbench/VulDetectBench/dataset/test')
+    tasks=Tasks(data_dir='/home/cihangxie/langgao/VulDetectBench/dataset/test',method='few-shot',task_no=[1,2,3,4,5])
     engine=VulDetectBench_Engine(model=gpt_model,save_path='./',task_and_metrics=tasks)
     engine.run()
