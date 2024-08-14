@@ -4,7 +4,7 @@
 
 VulDetectBench is a benchmark designed to evaluate the vulnerability detection capabilities of Large Language Models (LLMs).
 
-[![pypi](https://img.shields.io/badge/pypi-v0.0.4-orange)](https://pypi.org/project/vuldetectbench/)
+[![pypi](https://img.shields.io/badge/pypi-v0.0.5-orange)](https://pypi.org/project/vuldetectbench/)
 [![Static Badge](https://img.shields.io/badge/license-MIT-green)](./LICENSE)
 ![Static Badge](https://img.shields.io/badge/build-passing-grass)
 

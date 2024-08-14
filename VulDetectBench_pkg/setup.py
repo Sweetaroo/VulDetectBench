@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='vuldetectbench',
-    version='0.0.4',
+    version='0.0.5',
     description='VulDetectBench',  
     author='Lang Gao',
     author_email='vuldetectbench@gmail.com',
