@@ -227,7 +227,10 @@ def task3_single_metric(sys,gold):
     sys_tokens=word_tokenize(sys)
     hit_tokens=[token for token in sys_tokens if token in gold_tokens]
     sys_code=' '.join(hit_tokens)
-    recall=len(hit_tokens)/len(gold_tokens)
+    if len(gold_tokens)==0:
+        recall=0
+    else:
+        recall=len(hit_tokens)/len(gold_tokens)
     return (recall,len(hit_tokens),len(gold_tokens)),sys_code
 
 

@@ -38,7 +38,7 @@ class TaskItem:
         return id,question,answer
     
 class Tasks:
-    def __init__(self,data_dir=None,task_no:Union[int,List[int],None]=None):
+    def __init__(self,method=None,data_dir=None,task_no:Union[int,List[int],None]=None):
         if task_no==None:
             self.task_no=[1,2,3,4,5]
         elif type(task_no)==int:
@@ -48,7 +48,7 @@ class Tasks:
                 raise ValueError('task number list must not contain any index above 5 or under 1.')
             else:
                 self.task_no=task_no
-        
+        self.method=method
         self.data_dir=data_dir
         self.task_names=[f'Task{task_no}'for task_no in self.task_no ]
         self.task_info=self._get_task_info()
@@ -72,7 +72,7 @@ class Tasks:
         # only a single task
         task_name=f'Task{task_no}'
         raw_dataset=self._load_dataset(task_no)
-        dataset=format_dataset(task_name,raw_dataset)
+        dataset=format_dataset(task_name,raw_dataset,self.method)
         return dataset 
     
     def _form_tasks(self):
