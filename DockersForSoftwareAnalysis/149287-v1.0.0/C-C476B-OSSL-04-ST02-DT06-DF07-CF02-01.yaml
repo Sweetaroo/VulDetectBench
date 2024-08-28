@@ -1,0 +1,154 @@
+io_pair:
+  exploits:
+    - inputs:
+        - name: MICROPIPET_JUNKYARDS
+          ordinal: 1
+          value_type_enum: 0
+          source: env_var_input
+          value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          source_enum: 2
+          stage_enum: 0
+          value_encoding: none
+          stage: pre_process
+          value_type: USE_TEXT_DIRECTLY
+        - source: file_content_input
+          stage: pre_process
+          stage_enum: 0
+          id: source
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value: A.A
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+          source_enum: 3
+    - inputs:
+        - source: env_var_input
+          source_enum: 2
+          stage: pre_process
+          stage_enum: 0
+          value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+          ordinal: 1
+          name: MICROPIPET_JUNKYARDS
+        - source: file_content_input
+          source_enum: 3
+          stage: pre_process
+          stage_enum: 0
+          id: source
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value: AAAAAAAHHHHHHHHHHHH!
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+  description: "If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference\n\n"
+  base_inputs:
+    - source: env_var_input
+      source_enum: 2
+      stage: pre_process
+      stage_enum: 0
+      value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+      value_encoding: none
+      value_type: USE_TEXT_DIRECTLY
+      value_type_enum: 0
+      ordinal: 1
+      name: MICROPIPET_JUNKYARDS
+    - source: file_content_input
+      source_enum: 3
+      stage: pre_process
+      stage_enum: 0
+      id: source
+      ordinal: 2
+      name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+  benigns:
+    - inputs:
+        - value_type: USE_TEXT_DIRECTLY
+          ordinal: 1
+          source: env_var_input
+          source_enum: 2
+          stage: pre_process
+          name: MICROPIPET_JUNKYARDS
+          value_encoding: none
+          stage_enum: 0
+          value_type_enum: 0
+          value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+        - ordinal: 2
+          value_type_enum: 0
+          source: file_content_input
+          source_enum: 3
+          stage: pre_process
+          stage_enum: 0
+          value_encoding: none
+          name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value: AAAAAaba
+          id: source
+          value_type: USE_TEXT_DIRECTLY
+    - inputs:
+        - source_enum: 2
+          stage: pre_process
+          stage_enum: 0
+          value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value_encoding: none
+          ordinal: 1
+          value_type_enum: 0
+          name: MICROPIPET_JUNKYARDS
+          value_type: USE_TEXT_DIRECTLY
+          source: env_var_input
+        - id: source
+          stage: pre_process
+          stage_enum: 0
+          source_enum: 3
+          source: file_content_input
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value_encoding: none
+          value: ABCabaD123
+          value_type_enum: 0
+          value_type: USE_TEXT_DIRECTLY
+    - inputs:
+        - source_enum: 2
+          value: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          name: MICROPIPET_JUNKYARDS
+          source: env_var_input
+          stage_enum: 0
+          stage: pre_process
+          value_type: USE_TEXT_DIRECTLY
+          ordinal: 1
+          value_encoding: none
+          value_type_enum: 0
+        - value_encoding: none
+          stage_enum: 0
+          value_type: USE_TEXT_DIRECTLY
+          value: 1234564760ABCDEFGHIJKLMNOPQRSTUabaVWXYZabcdefghijklmnopqrstuvwxyz
+          source: file_content_input
+          stage: pre_process
+          source_enum: 3
+          id: source
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt
+          value_type_enum: 0
+description: "Creating test case using base program.\nAdded an environment variable read to get a filename to read in the file contents using an fread operation within the function\nCompleted injection.\n"
+code_complexity_features:
+  - file_name: /tmp/tmplw3dI7_ss_testcase/src-rose/crypto/bio/bio_err.c
+    function_name: ERR_load_BIO_strings
+    line_number: 0
+    feature_group: source_taint
+    feature: FILE_CONTENTS
+  - file_name: /tmp/tmplw3dI7_ss_testcase/src-rose/crypto/bio/bio_err.c
+    function_name: ERR_load_BIO_strings
+    line_number: 0
+    feature: typedef
+    feature_group: data_type
+  - file_name: /tmp/tmplw3dI7_ss_testcase/src-rose/crypto/bio/bio_err.c
+    function_name: ERR_load_BIO_strings
+    line_number: 0
+    feature_group: data_flow
+    feature: index_alias_1
+  - line_number: 0
+    feature_group: control_flow
+    feature: indirectly_recursive
+    file_name: /tmp/tmplw3dI7_ss_testcase/src-rose/crypto/bio/bio_err.c
+    function_name: ERR_load_BIO_strings

@@ -1,0 +1,154 @@
+io_pair:
+  base_inputs:
+    - source: env_var_input
+      source_enum: 2
+      stage: pre_process
+      stage_enum: 0
+      value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+      value_encoding: none
+      ordinal: 1
+      value_type: USE_TEXT_DIRECTLY
+      value_type_enum: 0
+      name: DEMIPREMISE_ALIGN
+    - stage: pre_process
+      source: file_content_input
+      source_enum: 3
+      stage_enum: 0
+      id: source
+      ordinal: 2
+      name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+  exploits:
+    - inputs:
+        - stage_enum: 0
+          ordinal: 1
+          source_enum: 2
+          value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          source: env_var_input
+          stage: pre_process
+          value_type_enum: 0
+          name: DEMIPREMISE_ALIGN
+          value_type: USE_TEXT_DIRECTLY
+          value_encoding: none
+        - stage: pre_process
+          source: file_content_input
+          source_enum: 3
+          stage_enum: 0
+          id: source
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value: A.A
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+    - inputs:
+        - ordinal: 1
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+          name: DEMIPREMISE_ALIGN
+          source: env_var_input
+          source_enum: 2
+          stage: pre_process
+          stage_enum: 0
+          value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value_encoding: none
+        - stage: pre_process
+          source: file_content_input
+          source_enum: 3
+          stage_enum: 0
+          id: source
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value: AAAAAAAHHHHHHHHHHHH!
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+  description: "If a non alphanumeric value is seen, the taint buffer gets set to null and the a strcpy is called, causing a null pointer dereference\n\n"
+  benigns:
+    - inputs:
+        - value_encoding: none
+          source: env_var_input
+          name: DEMIPREMISE_ALIGN
+          value_type: USE_TEXT_DIRECTLY
+          value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          stage_enum: 0
+          source_enum: 2
+          ordinal: 1
+          value_type_enum: 0
+          stage: pre_process
+        - source_enum: 3
+          value_type: USE_TEXT_DIRECTLY
+          value_encoding: none
+          id: source
+          stage_enum: 0
+          value_type_enum: 0
+          source: file_content_input
+          stage: pre_process
+          value: AAAAA
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+    - inputs:
+        - name: DEMIPREMISE_ALIGN
+          value_type: USE_TEXT_DIRECTLY
+          value_type_enum: 0
+          source_enum: 2
+          source: env_var_input
+          stage_enum: 0
+          value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          stage: pre_process
+          value_encoding: none
+          ordinal: 1
+        - source: file_content_input
+          id: source
+          value_type_enum: 0
+          ordinal: 2
+          name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value_encoding: none
+          stage: pre_process
+          value: ABCD123
+          value_type: USE_TEXT_DIRECTLY
+          source_enum: 3
+          stage_enum: 0
+    - inputs:
+        - source: env_var_input
+          source_enum: 2
+          value: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value_encoding: none
+          value_type: USE_TEXT_DIRECTLY
+          name: DEMIPREMISE_ALIGN
+          value_type_enum: 0
+          stage: pre_process
+          ordinal: 1
+          stage_enum: 0
+        - ordinal: 2
+          stage: pre_process
+          name: /opt/stonesoup/workspace/testData/woordbook_subalternately/punctureproof_emporia.txt
+          value_type_enum: 0
+          source_enum: 3
+          value_type: USE_TEXT_DIRECTLY
+          source: file_content_input
+          id: source
+          stage_enum: 0
+          value_encoding: none
+          value: 1234564760ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+description: "Creating test case using base program.\nAdded an environment variable read to get a filename to read in the file contents using an fread operation within the function\nCompleted injection.\n"
+code_complexity_features:
+  - function_name: EVP_bf_cbc
+    file_name: /tmp/tmpLF8gkL_ss_testcase/src-rose/crypto/evp/e_bf.c
+    line_number: 0
+    feature: FILE_CONTENTS
+    feature_group: source_taint
+  - file_name: /tmp/tmpLF8gkL_ss_testcase/src-rose/crypto/evp/e_bf.c
+    function_name: EVP_bf_cbc
+    line_number: 0
+    feature: simple
+    feature_group: data_type
+  - file_name: /tmp/tmpLF8gkL_ss_testcase/src-rose/crypto/evp/e_bf.c
+    function_name: EVP_bf_cbc
+    line_number: 0
+    feature_group: data_flow
+    feature: address_alias_2
+  - function_name: EVP_bf_cbc
+    line_number: 0
+    feature_group: control_flow
+    feature: recursive
+    file_name: /tmp/tmpLF8gkL_ss_testcase/src-rose/crypto/evp/e_bf.c

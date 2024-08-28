@@ -1,0 +1,122 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "properties": {
+        "id": 149414,
+        "version": "1.0.0",
+        "type": "source code",
+        "status": "candidate",
+        "submissionDate": "2015-10-06",
+        "language": "c",
+        "author": "IARPA STONESOUP Test and Evaluation team",
+        "description": "This test case reads entries from a comma-separated-value file. It expects to read 3 strings from a file in the format: double quote, up to 79 characters, double quote, comma; double quote, up to 79 characters, double quote, comma; and double quote, up to 79 characters, double quote. The test case then creates an array of 3 pointers, setting each pointer to NULL initially. It checks each string read from the file, and if the length of the string from the file is non-zero, it sets the corresponding pointer to that string. It then writes each of these three pointers to another file, using fputs. If the file is not in the format expected, the three strings will not be read in properly. Some of the pointers in the array of 3 pointers will then not be set correctly and will remain NULL. When the test case tries to write the strings to the output file, it will receive a segmentation fault on the fputs call. \nMetadata\n - Base program: OpenSSL\n - Source Taint: SHARED_MEMORY\n - Data Type: UNION\n - Data Flow: BUFFER_ADDRESS_POINTER\n - Control Flow: MACROS",
+        "state": "bad",
+        "application": "cpe:2.3:a:openssl:openssl:1.0.1e:*:*:*:*:*:*:*",
+        "dependencies": [
+          "stonesoup-vm-v3.0",
+          "openssl-v1.0.1e"
+        ]
+      },
+      "tool": {
+        "driver": {
+          "name": "SARD - SAMATE",
+          "fullName": "Software Assurance Reference Dataset Project",
+          "informationUri": "https://samate.nist.gov/SARD/",
+          "version": "5.0.0",
+          "organization": "NIST",
+          "supportedTaxonomies": [
+            {
+              "name": "CWE",
+              "index": 0
+            }
+          ]
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01.xml"
+          },
+          "length": 72921,
+          "sourceLanguage": "xml",
+          "hashes": {
+            "sha-256": "3d4e7f8e3ddb6119565e190439c053342218b3137dd2ac9f2f78b1220a38aa29"
+          }
+        },
+        {
+          "location": {
+            "uri": "scripts/shm_setup.c"
+          },
+          "length": 3155,
+          "sourceLanguage": "c",
+          "hashes": {
+            "sha-256": "15d311b07d65d83f38876f4ee427c355e2048145d6db756d5d71877405f24822"
+          }
+        },
+        {
+          "location": {
+            "uri": "src/crypto/cryptlib.c"
+          },
+          "length": 29438,
+          "sourceLanguage": "c",
+          "hashes": {
+            "sha-256": "f4923b27c67402a94fa7d69c7b2386f97fc3c8bc811bd27d05136c42dc6c4672"
+          }
+        }
+      ],
+      "taxonomies": [
+        {
+          "name": "CWE",
+          "version": "4.6",
+          "informationUri": "https://cwe.mitre.org/data/published/cwe_v4.6.pdf",
+          "downloadUri": "https://cwe.mitre.org/data/xml/cwec_v4.6.xml.zip",
+          "organization": "MITRE",
+          "shortDescription": {
+            "text": "The MITRE Common Weakness Enumeration"
+          },
+          "isComprehensive": false,
+          "taxa": [
+            {
+              "id": "476",
+              "name": "NULL Pointer Dereference"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "CWE-476",
+          "message": {
+            "text": "NULL Pointer Dereference."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/crypto/cryptlib.c",
+                  "index": 2
+                },
+                "region": {
+                  "startLine": 826,
+                  "endLine": 835
+                }
+              }
+            }
+          ],
+          "taxa": [
+            {
+              "toolComponent": {
+                "name": "CWE",
+                "index": 0
+              },
+              "id": "476",
+              "index": 0
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

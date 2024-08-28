@@ -1,0 +1,735 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project base_program="C-OSSL" language="C" name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01" targeted_architecture="ANY" targeted_os="LINUX" test_case_type="ALL" xmlns="urn:stonesoup:project">
+    <description>Creating test case using base program.
+Added an environment variable read to get a filename to read in the file contents using an fread operation within the function
+Completed injection.
+</description>
+    <additional_information>
+        <keyvalue key="algorithmic_variant_name">UNSPECIFIED</keyvalue>
+        <keyvalue key="root_cause">UNSPECIFIED</keyvalue>
+    </additional_information>
+    <structure install="install" iodata="testData" scoredata="testOutput" scripts="scripts" source="src"/>
+    <run_command>$SS_TC_ROOT/$SS_TC_INSTALL/bin/openssl</run_command>
+    <weakness generation_method="FAULT_INJECTED">
+        <variant cwe="CWE-476" name="CWE-476-B"/>
+        <features>
+            <taint_source file_name="/crypto/bio/bio_err.c" line_number="0" type="FILE_CONTENTS">
+                <method name="ERR_load_BIO_strings"/>
+            </taint_source>
+            <data_type file_name="/crypto/bio/bio_err.c" line_number="0" type="TYPEDEF">
+                <method name="ERR_load_BIO_strings"/>
+            </data_type>
+            <data_flow file_name="/crypto/bio/bio_err.c" line_number="0" type="INDEX_ALIAS_1">
+                <method name="ERR_load_BIO_strings"/>
+            </data_flow>
+            <control_flow file_name="/crypto/bio/bio_err.c" line_number="0" type="INDIRECTLY_RECURSIVE">
+                <method name="ERR_load_BIO_strings"/>
+            </control_flow>
+        </features>
+    </weakness>
+    <build_commands cppflags="-DSTONESOUP_TRACE=1" ldflags="-ldl" libs="-ldl">
+        <command>CFLAG=&quot;-O $CFLAGS&quot; EX_LIBS=&quot;$LDFLAGS $LIBS&quot; ./config --prefix=&quot;$SS_TC_ROOT/$SS_TC_INSTALL&quot; shared</command>
+        <command>make CC=&quot;$SS_CC&quot; CCLD=&quot;$SS_LNK&quot; EX_LIBS=&quot;$LDFLAGS $LIBS&quot;</command>
+        <command>make install_sw CC=&quot;$SS_CC&quot; CCLD=&quot;$SS_LNK&quot; EX_LIBS=&quot;$LDFLAGS $SS_LDFLAGS $LIBS&quot;</command>
+    </build_commands>
+    <iopairs>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-01" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Generate an RSA private key
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">AAAAAaba</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">genpkey -out $SS_TC_ROOT/testOutput/good-01/key.pem -algorithm RSA</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_2Tf8IkDPpW" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-01-Default">
+                <formula name="GOOD-01-Default">GOOD-01 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-01">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-01/key.pem</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END PRIVATE KEY-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-02" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Create a password hash using crypt, and salt of &quot;xx&quot;
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">ABCabaD123</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">passwd -crypt -salt xx password</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_AFYSizO2Cm" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-02-Default">
+                <formula name="GOOD-02-Default">GOOD-02 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-02">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">xxj31ZMTZzkVA</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-03" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Encrypt a file with DES3 using salt and key of &quot;stonesoup&quot;
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">1234564760ABCDEFGHIJKLMNOPQRSTUabaVWXYZabcdefghijklmnopqrstuvwxyz</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">des3 -salt -in good-03/file.txt -out $SS_TC_ROOT/testOutput/good-03/file.des3 -k &quot;stonesoup&quot;</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_tGx4gjbegu" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-03-Default">
+                <formula name="GOOD-03-Default">GOOD-03 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-03">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-03/file.des3</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Salted__</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-04" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>parse ASN1 structure
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">AAAAAaba</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">asn1parse -genstr 'UTF8:Hello World'</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_gZPqrLUJBO" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-04-Default">
+                <formula name="GOOD-04-Default">GOOD-04 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-04">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">    0:d=0  hl=2 l=  11 prim: UTF8STRING        :Hello World</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-05" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>create Netscape certficiate from PEM
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">ABCabaD123</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">nseq -in good-05/cert.pem -toseq -out $SS_TC_ROOT/testOutput/good-05/nseq.pem</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_ZFcww6rr48" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-05-Default">
+                <formula name="GOOD-05-Default">GOOD-05 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-05">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-05/nseq.pem</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END CERTIFICATE-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-06" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>generate MIME content from text file, encrypting with x509 cert
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">1234564760ABCDEFGHIJKLMNOPQRSTUabaVWXYZabcdefghijklmnopqrstuvwxyz</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">smime -in good-06/secretemail.txt -encrypt good-06/x509.pem</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_kYKVoEJw8J" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-06-Default">
+                <formula name="GOOD-06-Default">GOOD-06 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-06">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_FILE_CONTENTS">good-06/output.txt</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-07" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>check primality of number
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">AAAAAaba</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">prime 15648972863</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_nPcfXLWA2x" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-07-Default">
+                <formula name="GOOD-07-Default">GOOD-07 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-07">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">3A4C0603F is prime</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-08" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>encrypt textfile with AES 256 and salt, base64 encoded result
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">ABCabaD123</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">enc -in good-08/secret.txt -aes256 -k password -S abacabb -base64</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_UwHrjMBn3v" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-08-Default">
+                <formula name="GOOD-08-Default">GOOD-08 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-08">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">U2FsdGVkX1+rrKuwAAAAACgoU5YHltmsjJifyZi0xJA=</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-09" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>SHA1 with hmac of text file
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">1234564760ABCDEFGHIJKLMNOPQRSTUabaVWXYZabcdefghijklmnopqrstuvwxyz</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">dgst -sha1 -c -hmac &quot;secret-key&quot; good-09/message.txt</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_Vfwn8lDpQN" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-09-Default">
+                <formula name="GOOD-09-Default">GOOD-09 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-09">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">HMAC-SHA1(good-09/message.txt)= 3a:da:b3:ba:5a:59:a9:56:8d:76:3a:d4:20:f6:13:cd:aa:49:41:a6</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-GOOD-10" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Generate SSL certificate and private key
+If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">AAAAAaba</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout good-10/server.key -out good-10/server.crt -subj &quot;/C=SP/ST=The Moon/L=TheDarkSide/O=KSP/OU=Moon Department/CN=ksp.moon&quot;</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_SzI6vkMkrg" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-10-Default">
+                <formula name="GOOD-10-Default">GOOD-10-1 AND GOOD-10-2 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-10-1">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testData/good-10/server.crt</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END CERTIFICATE-----</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="GOOD-10-2">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testData/good-10/server.key</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END PRIVATE KEY-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-BAD-01" reset_scheme="NONE" timeout="300" type="BAD">
+            <description>If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>DOS_UNCONTROLLED_EXIT</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">A.A</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">dgst -sha1 -c -hmac &quot;secret-key&quot; good-09/message.txt</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_Ep5pKWSNjFp3kT4qKuxQ" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="segfault_formula_ZPWXGUosOA">
+                <formula name="segfault_formula_ZPWXGUosOA">weakness_started_AJYeR8Ge4Cq8MigMFmX5 AND ((NOT PERFORMER AND (segfault_code_uh3V01W59D OR segfault_code_c0SteaUawz OR segfault_code_knOZmYhuWF OR segfault_code_qehId44XgQ OR segfault_code_Z1TCSW3a9J OR segfault_msg_v1ZNp2dzxN OR illegal_inst_msg_2PIizQ9dVu) AND NOT timeout_juAVLmpSDw) or (PERFORMER AND NOT ((segfault_code_uh3V01W59D OR segfault_code_c0SteaUawz OR segfault_code_knOZmYhuWF OR segfault_code_qehId44XgQ OR segfault_code_Z1TCSW3a9J OR segfault_msg_v1ZNp2dzxN OR illegal_inst_msg_2PIizQ9dVu) OR timeout_juAVLmpSDw)))</formula>
+                <formula name="no_weakness_started_formula_GxRy3furzT">(NOT PERFORMER AND (segfault_code_uh3V01W59D OR segfault_code_c0SteaUawz OR segfault_code_knOZmYhuWF OR segfault_code_qehId44XgQ OR segfault_code_Z1TCSW3a9J OR segfault_msg_v1ZNp2dzxN OR illegal_inst_msg_2PIizQ9dVu) AND NOT timeout_juAVLmpSDw) or (PERFORMER AND NOT ((segfault_code_uh3V01W59D OR segfault_code_c0SteaUawz OR segfault_code_knOZmYhuWF OR segfault_code_qehId44XgQ OR segfault_code_Z1TCSW3a9J OR segfault_msg_v1ZNp2dzxN OR illegal_inst_msg_2PIizQ9dVu) OR timeout_juAVLmpSDw))</formula>
+            </scoring_formula>
+            <output_checks>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="timeout_juAVLmpSDw" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="controlled_exit_iBNsypV71J" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="continued_execution_NsXNbo3qZD" type="USE_TEXT">CONTINUED_EXECUTION</simple_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_uh3V01W59D">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">132</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_c0SteaUawz">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">134</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_knOZmYhuWF">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">135</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_qehId44XgQ">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">136</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_Z1TCSW3a9J">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">139</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="segfault_msg_v1ZNp2dzxN">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Segmentation fault</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="illegal_inst_msg_2PIizQ9dVu">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Illegal instruction</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="weakness_started_AJYeR8Ge4Cq8MigMFmX5">
+                    <actual encoding="STRING" input_id_ref="lttng_output_Ep5pKWSNjFp3kT4qKuxQ" output_type="STANDARD_OUT">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">stonesoup_trace:weakness_start</expected>
+                </compare_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476B-OSSL-04-ST02-DT06-DF07-CF02-01-BAD-02" reset_scheme="NONE" timeout="300" type="BAD">
+            <description>If a value is seen that doesn't contain 'aba', the taint buffer gets set to null and strlen is called, causing a null pointer dereference
+
+</description>
+            <technical_impact>DOS_UNCONTROLLED_EXIT</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf 'env MICROPIPET_JUNKYARDS;\n' | tee nginx_conf_env.txt</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="MICROPIPET_JUNKYARDS" type="USE_TEXT">/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt</environment_variable>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/proteosome_jerez/tournay_capping.txt" type="USE_TEXT">AAAAAAAHHHHHHHHHHHH!</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">nseq -in good-05/cert.pem -toseq -out $SS_TC_ROOT/testOutput/good-05/nseq.pem</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_X8GkHPNlBdvyz6hpGSLv" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="segfault_formula_8AQJM0u3pl">
+                <formula name="segfault_formula_8AQJM0u3pl">weakness_started_x4rzpchPZmr1CIs3pUpi AND ((NOT PERFORMER AND (segfault_code_HPCdLIJLOy OR segfault_code_r58sd4bdQV OR segfault_code_LP9vh0WTrW OR segfault_code_zx6yKJ0V6H OR segfault_code_l28LQata33 OR segfault_msg_nFoe5N56Ej OR illegal_inst_msg_k2Yx5dYRwt) AND NOT timeout_9TjJOPy8at) or (PERFORMER AND NOT ((segfault_code_HPCdLIJLOy OR segfault_code_r58sd4bdQV OR segfault_code_LP9vh0WTrW OR segfault_code_zx6yKJ0V6H OR segfault_code_l28LQata33 OR segfault_msg_nFoe5N56Ej OR illegal_inst_msg_k2Yx5dYRwt) OR timeout_9TjJOPy8at)))</formula>
+                <formula name="no_weakness_started_formula_If5lRYuOuB">(NOT PERFORMER AND (segfault_code_HPCdLIJLOy OR segfault_code_r58sd4bdQV OR segfault_code_LP9vh0WTrW OR segfault_code_zx6yKJ0V6H OR segfault_code_l28LQata33 OR segfault_msg_nFoe5N56Ej OR illegal_inst_msg_k2Yx5dYRwt) AND NOT timeout_9TjJOPy8at) or (PERFORMER AND NOT ((segfault_code_HPCdLIJLOy OR segfault_code_r58sd4bdQV OR segfault_code_LP9vh0WTrW OR segfault_code_zx6yKJ0V6H OR segfault_code_l28LQata33 OR segfault_msg_nFoe5N56Ej OR illegal_inst_msg_k2Yx5dYRwt) OR timeout_9TjJOPy8at))</formula>
+            </scoring_formula>
+            <output_checks>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="timeout_9TjJOPy8at" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="controlled_exit_h3TaDhiKTP" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="continued_execution_wjBeg3AJOl" type="USE_TEXT">CONTINUED_EXECUTION</simple_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_HPCdLIJLOy">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">132</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_r58sd4bdQV">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">134</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_LP9vh0WTrW">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">135</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_zx6yKJ0V6H">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">136</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_l28LQata33">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">139</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="segfault_msg_nFoe5N56Ej">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Segmentation fault</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="illegal_inst_msg_k2Yx5dYRwt">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Illegal instruction</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="weakness_started_x4rzpchPZmr1CIs3pUpi">
+                    <actual encoding="STRING" input_id_ref="lttng_output_X8GkHPNlBdvyz6hpGSLv" output_type="STANDARD_OUT">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">stonesoup_trace:weakness_start</expected>
+                </compare_check>
+            </output_checks>
+        </iopair>
+    </iopairs>
+</project>

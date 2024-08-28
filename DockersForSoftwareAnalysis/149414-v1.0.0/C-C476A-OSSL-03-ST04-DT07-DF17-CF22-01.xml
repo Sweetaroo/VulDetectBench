@@ -1,0 +1,843 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project base_program="C-OSSL" language="C" name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01" targeted_architecture="ANY" targeted_os="LINUX" test_case_type="ALL" xmlns="urn:stonesoup:project">
+    <description>Creating test case using base program.
+Added an environment variable read to get a key in order to read in data from shared memory.
+Completed injection.
+</description>
+    <additional_information>
+        <keyvalue key="algorithmic_variant_name">UNSPECIFIED</keyvalue>
+        <keyvalue key="root_cause">UNSPECIFIED</keyvalue>
+    </additional_information>
+    <structure install="install" iodata="testData" scoredata="testOutput" scripts="scripts" source="src"/>
+    <run_command>$SS_TC_ROOT/$SS_TC_INSTALL/bin/openssl</run_command>
+    <weakness generation_method="FAULT_INJECTED">
+        <variant cwe="CWE-476" name="CWE-476-A"/>
+        <features>
+            <taint_source file_name="/crypto/cryptlib.c" line_number="0" type="SHARED_MEMORY">
+                <method name="CRYPTO_add_lock"/>
+            </taint_source>
+            <data_type file_name="/crypto/cryptlib.c" line_number="0" type="UNION">
+                <method name="CRYPTO_add_lock"/>
+            </data_type>
+            <data_flow file_name="/crypto/cryptlib.c" line_number="0" type="BUFFER_ADDRESS_ARRAY_INDEX">
+                <method name="CRYPTO_add_lock"/>
+            </data_flow>
+            <control_flow file_name="/crypto/cryptlib.c" line_number="0" type="MACROS">
+                <method name="CRYPTO_add_lock"/>
+            </control_flow>
+        </features>
+    </weakness>
+    <build_commands cppflags="-DSTONESOUP_TRACE=1" ldflags="-ldl" libs="-ldl">
+        <command>CFLAG=&quot;-O $CFLAGS&quot; EX_LIBS=&quot;$LDFLAGS $LIBS&quot; ./config --prefix=&quot;$SS_TC_ROOT/$SS_TC_INSTALL&quot; shared</command>
+        <command>make CC=&quot;$SS_CC&quot; CCLD=&quot;$SS_LNK&quot; EX_LIBS=&quot;$LDFLAGS $LIBS&quot;</command>
+        <command>make install_sw CC=&quot;$SS_CC&quot; CCLD=&quot;$SS_LNK&quot; EX_LIBS=&quot;$LDFLAGS $SS_LDFLAGS $LIBS&quot;</command>
+    </build_commands>
+    <iopairs>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-01" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Generate an RSA private key
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good01.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good01.csv" type="USE_TEXT">&quot;this&quot;,&quot;is&quot;,&quot;data&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">genpkey -out $SS_TC_ROOT/testOutput/good-01/key.pem -algorithm RSA</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_zovyuz9AJN" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-01-Default">
+                <formula name="GOOD-01-Default">GOOD-01 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-01">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-01/key.pem</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END PRIVATE KEY-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-02" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Create a password hash using crypt, and salt of &quot;xx&quot;
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good02.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good02.csv" type="USE_TEXT">&quot;hello&quot;,&quot;world&quot;,&quot;!!!!&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">passwd -crypt -salt xx password</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_JDxObvCNWN" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-02-Default">
+                <formula name="GOOD-02-Default">GOOD-02 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-02">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">xxj31ZMTZzkVA</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-03" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Encrypt a file with DES3 using salt and key of &quot;stonesoup&quot;
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good03.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good03.csv" type="USE_TEXT">&quot;one&quot;,&quot;two&quot;,&quot;three&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">des3 -salt -in good-03/file.txt -out $SS_TC_ROOT/testOutput/good-03/file.des3 -k &quot;stonesoup&quot;</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_2sLpcv0uTO" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-03-Default">
+                <formula name="GOOD-03-Default">GOOD-03 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-03">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-03/file.des3</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Salted__</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-04" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>parse ASN1 structure
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good01.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good01.csv" type="USE_TEXT">&quot;this&quot;,&quot;is&quot;,&quot;data&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">asn1parse -genstr 'UTF8:Hello World'</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_tgfCHdFP04" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-04-Default">
+                <formula name="GOOD-04-Default">GOOD-04 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-04">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">    0:d=0  hl=2 l=  11 prim: UTF8STRING        :Hello World</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-05" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>create Netscape certficiate from PEM
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good02.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good02.csv" type="USE_TEXT">&quot;hello&quot;,&quot;world&quot;,&quot;!!!!&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">nseq -in good-05/cert.pem -toseq -out $SS_TC_ROOT/testOutput/good-05/nseq.pem</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_E1NTEFSqPi" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-05-Default">
+                <formula name="GOOD-05-Default">GOOD-05 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-05">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testOutput/good-05/nseq.pem</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END CERTIFICATE-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-06" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>generate MIME content from text file, encrypting with x509 cert
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good03.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good03.csv" type="USE_TEXT">&quot;one&quot;,&quot;two&quot;,&quot;three&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">smime -in good-06/secretemail.txt -encrypt good-06/x509.pem</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_Cl4r8zFML1" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-06-Default">
+                <formula name="GOOD-06-Default">GOOD-06 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-06">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_FILE_CONTENTS">good-06/output.txt</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-07" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>check primality of number
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good01.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good01.csv" type="USE_TEXT">&quot;this&quot;,&quot;is&quot;,&quot;data&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">prime 15648972863</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_dmQaj9e8N9" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-07-Default">
+                <formula name="GOOD-07-Default">GOOD-07 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-07">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">3A4C0603F is prime</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-08" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>encrypt textfile with AES 256 and salt, base64 encoded result
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good02.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good02.csv" type="USE_TEXT">&quot;hello&quot;,&quot;world&quot;,&quot;!!!!&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">enc -in good-08/secret.txt -aes256 -k password -S abacabb -base64</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_JhBDji6cMo" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-08-Default">
+                <formula name="GOOD-08-Default">GOOD-08 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-08">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">U2FsdGVkX1+rrKuwAAAAACgoU5YHltmsjJifyZi0xJA=</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-09" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>SHA1 with hmac of text file
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good03.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good03.csv" type="USE_TEXT">&quot;one&quot;,&quot;two&quot;,&quot;three&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">dgst -sha1 -c -hmac &quot;secret-key&quot; good-09/message.txt</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_B1gB0tsRh9" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-09-Default">
+                <formula name="GOOD-09-Default">GOOD-09 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-09">
+                    <actual encoding="STRING" output_type="STANDARD_OUT"></actual>
+                    <expected encoding="STRING" type="USE_TEXT">HMAC-SHA1(good-09/message.txt)= 3a:da:b3:ba:5a:59:a9:56:8d:76:3a:d4:20:f6:13:cd:aa:49:41:a6</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-GOOD-10" reset_scheme="NONE" timeout="300" type="GOOD">
+            <description>Generate SSL certificate and private key
+Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>NONE</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/good01.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/good01.csv" type="USE_TEXT">&quot;this&quot;,&quot;is&quot;,&quot;data&quot;</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout good-10/server.key -out good-10/server.crt -subj &quot;/C=SP/ST=The Moon/L=TheDarkSide/O=KSP/OU=Moon Department/CN=ksp.moon&quot;</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_rqguraaS0k" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="GOOD-10-Default">
+                <formula name="GOOD-10-Default">GOOD-10-1 AND GOOD-10-2 AND NOT TIMEOUT AND NOT CONTROLLED_EXIT</formula>
+            </scoring_formula>
+            <output_checks>
+                <compare_check check_type="CONTAINS" name="GOOD-10-1">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testData/good-10/server.crt</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END CERTIFICATE-----</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="GOOD-10-2">
+                    <actual encoding="STRING" output_type="FILE_CONTENTS">../testData/good-10/server.key</actual>
+                    <expected encoding="STRING" type="USE_TEXT">-----END PRIVATE KEY-----</expected>
+                </compare_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="TIMEOUT" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="CONTROLLED_EXIT" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-BAD-01" reset_scheme="NONE" timeout="300" type="BAD">
+            <description>Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>DOS_UNCONTROLLED_EXIT</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/bad01.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/bad01.csv" type="USE_TEXT">&quot;this&quot;,&quot;is&quot;,data</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">asn1parse -genstr 'UTF8:Hello World'</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_fPRdi3DZqvOTIZQahTEw" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="segfault_formula_wGYLDqxrGp">
+                <formula name="segfault_formula_wGYLDqxrGp">weakness_started_61up2ML0MMGpRt1zU0Fl AND ((NOT PERFORMER AND (segfault_code_Oi8hyKrcHL OR segfault_code_trESUmoAiX OR segfault_code_Qx1HAyR1Xi OR segfault_code_uN5Kpraad5 OR segfault_code_bJgZTHRqWw OR segfault_msg_tnWGFaTQ9N OR illegal_inst_msg_NRXSgfzNax) AND NOT timeout_2n6vq1kwTX) or (PERFORMER AND NOT ((segfault_code_Oi8hyKrcHL OR segfault_code_trESUmoAiX OR segfault_code_Qx1HAyR1Xi OR segfault_code_uN5Kpraad5 OR segfault_code_bJgZTHRqWw OR segfault_msg_tnWGFaTQ9N OR illegal_inst_msg_NRXSgfzNax) OR timeout_2n6vq1kwTX)))</formula>
+                <formula name="no_weakness_started_formula_MWKoBVJGJp">(NOT PERFORMER AND (segfault_code_Oi8hyKrcHL OR segfault_code_trESUmoAiX OR segfault_code_Qx1HAyR1Xi OR segfault_code_uN5Kpraad5 OR segfault_code_bJgZTHRqWw OR segfault_msg_tnWGFaTQ9N OR illegal_inst_msg_NRXSgfzNax) AND NOT timeout_2n6vq1kwTX) or (PERFORMER AND NOT ((segfault_code_Oi8hyKrcHL OR segfault_code_trESUmoAiX OR segfault_code_Qx1HAyR1Xi OR segfault_code_uN5Kpraad5 OR segfault_code_bJgZTHRqWw OR segfault_msg_tnWGFaTQ9N OR illegal_inst_msg_NRXSgfzNax) OR timeout_2n6vq1kwTX))</formula>
+            </scoring_formula>
+            <output_checks>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="timeout_2n6vq1kwTX" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="controlled_exit_vqmYAUTCCh" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="continued_execution_pvcybBWdsN" type="USE_TEXT">CONTINUED_EXECUTION</simple_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_Oi8hyKrcHL">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">132</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_trESUmoAiX">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">134</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_Qx1HAyR1Xi">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">135</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_uN5Kpraad5">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">136</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_bJgZTHRqWw">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">139</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="segfault_msg_tnWGFaTQ9N">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Segmentation fault</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="illegal_inst_msg_NRXSgfzNax">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Illegal instruction</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="weakness_started_61up2ML0MMGpRt1zU0Fl">
+                    <actual encoding="STRING" input_id_ref="lttng_output_fPRdi3DZqvOTIZQahTEw" output_type="STANDARD_OUT">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">stonesoup_trace:weakness_start</expected>
+                </compare_check>
+            </output_checks>
+        </iopair>
+        <iopair name="C-C476A-OSSL-03-ST04-DT07-DF17-CF22-01-BAD-02" reset_scheme="NONE" timeout="300" type="BAD">
+            <description>Reads file name of a csv containing 3, fully quoted, comma separated, columns.Opens file and reads each value and sets it to index in array. If a value isn'tfully quoted program will skip that value and eventually seg fault when dereferencingarray index for printing
+
+</description>
+            <technical_impact>DOS_UNCONTROLLED_EXIT</technical_impact>
+            <pre_processes scheme="SEQUENCE">
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">gcc -o &quot;$SS_TC_ROOT/scripts/shm_setup&quot; &quot;$SS_TC_ROOT/scripts/shm_setup.c&quot;</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">printf '' | tee nginx_conf_env.txt</script>
+                </process>
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">nohup shm_setup -k 8954 -s 45 -m &quot;/opt/stonesoup/workspace/testData/bad02.csv&quot; -o /opt/stonesoup/workspace/inputDaemons/shared_memory_01.id &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.out 2&gt;&amp;1 &amp; echo $! &gt; /opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid &amp;&amp; echo &quot;Shared memory created&quot;</script>
+                </process>
+                <process>
+                    <file encoding="STRING" path="/opt/stonesoup/workspace/testData/bad02.csv" type="USE_TEXT">&quot;malformed values with spaces&quot;,&quot;because no&quot;,quotes</file>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir $SS_TC_ROOT/logs/execute/lttng</script>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="LTTNG_HOME" type="USE_TEXT">$SS_TC_ROOT/logs/execute/lttng</environment_variable>
+                </process>
+                <process>
+                    <environment_variable encoding="STRING" key="SS_RUN_COMMAND_LD_PRELOAD" type="USE_TEXT">$SS_TC_DEPS/lib64/liblttng-stonesoup-c.so:$SS_TC_DEPS/lib64/liblttng-ust-fork.so</environment_variable>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">mkdir -p $SS_TC_DEPS/var/run/lttng</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">$SS_TC_DEPS/bin/lttng create &amp;&amp; $SS_TC_DEPS/bin/lttng enable-event -u -a &amp;&amp; $SS_TC_DEPS/bin/lttng start</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">rm -rf $SS_TC_ROOT/lockDir</script>
+                </process>
+            </pre_processes>
+            <run_command encoding="STRING" preprend_runcommand="true" type="USE_TEXT">dgst -sha1 -c -hmac &quot;secret-key&quot; good-09/message.txt</run_command>
+            <post_processes scheme="SEQUENCE">
+                <process delay_after="2">
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot; ]]; then killtree.sh -s 9 -p $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.pid&quot;) &amp;&amp; echo &quot;Killed shared memory server.&quot;; else echo &quot;Failed: Shared memory server PID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" type="USE_TEXT">if [[ -f &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot; ]]; then ipcrm -m $(cat &quot;/opt/stonesoup/workspace/inputDaemons/shared_memory_01.id&quot;) &amp;&amp; echo &quot;Deleted shared memory segment.&quot;; else echo &quot;Failed: Shared memory ID file does not exist.&quot;; fi</script>
+                </process>
+                <process>
+                    <script background="false" encoding="STRING" input_id="lttng_output_PIu0KYRslkFY4Se1zL61" type="USE_TEXT">$SS_TC_DEPS/bin/lttng stop &amp;&amp; $SS_TC_DEPS/bin/lttng view &amp;&amp; $SS_TC_DEPS/bin/lttng destroy</script>
+                </process>
+            </post_processes>
+            <scoring_formula default="segfault_formula_aWtpNe4sR4">
+                <formula name="segfault_formula_aWtpNe4sR4">weakness_started_ijcT0EtbJ1ke2ckA2t6e AND ((NOT PERFORMER AND (segfault_code_xWUNU4c2lD OR segfault_code_n5LHtAHtXk OR segfault_code_NmuMLHPjW3 OR segfault_code_7zO3bTlJ3f OR segfault_code_VOJDCSA4BJ OR segfault_msg_fgh9kormsj OR illegal_inst_msg_i8YYpP1SmZ) AND NOT timeout_CdXGcLye6E) or (PERFORMER AND NOT ((segfault_code_xWUNU4c2lD OR segfault_code_n5LHtAHtXk OR segfault_code_NmuMLHPjW3 OR segfault_code_7zO3bTlJ3f OR segfault_code_VOJDCSA4BJ OR segfault_msg_fgh9kormsj OR illegal_inst_msg_i8YYpP1SmZ) OR timeout_CdXGcLye6E)))</formula>
+                <formula name="no_weakness_started_formula_08iNgkrsSS">(NOT PERFORMER AND (segfault_code_xWUNU4c2lD OR segfault_code_n5LHtAHtXk OR segfault_code_NmuMLHPjW3 OR segfault_code_7zO3bTlJ3f OR segfault_code_VOJDCSA4BJ OR segfault_msg_fgh9kormsj OR illegal_inst_msg_i8YYpP1SmZ) AND NOT timeout_CdXGcLye6E) or (PERFORMER AND NOT ((segfault_code_xWUNU4c2lD OR segfault_code_n5LHtAHtXk OR segfault_code_NmuMLHPjW3 OR segfault_code_7zO3bTlJ3f OR segfault_code_VOJDCSA4BJ OR segfault_msg_fgh9kormsj OR illegal_inst_msg_i8YYpP1SmZ) OR timeout_CdXGcLye6E))</formula>
+            </scoring_formula>
+            <output_checks>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="timeout_CdXGcLye6E" type="USE_TEXT">DOES_NOT_RETURN</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="controlled_exit_mMRh9QQtYG" type="USE_TEXT">CONTROLLED_EXIT</simple_check>
+                <simple_check check_type="SPECIAL" encoding="STRING" name="continued_execution_TuJh9KiSxg" type="USE_TEXT">CONTINUED_EXECUTION</simple_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_xWUNU4c2lD">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">132</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_n5LHtAHtXk">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">134</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_NmuMLHPjW3">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">135</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_7zO3bTlJ3f">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">136</expected>
+                </compare_check>
+                <compare_check check_type="EXACT_MATCH" name="segfault_code_VOJDCSA4BJ">
+                    <actual encoding="STRING" output_type="RETURN_CODE">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">139</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="segfault_msg_fgh9kormsj">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Segmentation fault</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="illegal_inst_msg_i8YYpP1SmZ">
+                    <actual encoding="STRING" output_type="STANDARD_ERROR">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">Illegal instruction</expected>
+                </compare_check>
+                <compare_check check_type="CONTAINS" name="weakness_started_ijcT0EtbJ1ke2ckA2t6e">
+                    <actual encoding="STRING" input_id_ref="lttng_output_PIu0KYRslkFY4Se1zL61" output_type="STANDARD_OUT">None</actual>
+                    <expected encoding="STRING" type="USE_TEXT">stonesoup_trace:weakness_start</expected>
+                </compare_check>
+            </output_checks>
+        </iopair>
+    </iopairs>
+</project>
