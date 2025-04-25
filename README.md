@@ -1,7 +1,5 @@
 # VulDetectBench
 
-> Official code for paper "[VulDetectBench: Evaluating the Deep Capability of Vulnerability Detection with Large Language Models](https://arxiv.org/abs/2406.07595)".
-
 VulDetectBench is a benchmark designed to evaluate the vulnerability detection capabilities of Large Language Models (LLMs).
 
 [![pypi](https://img.shields.io/badge/pypi-v0.0.5-orange)](https://pypi.org/project/vuldetectbench/)
