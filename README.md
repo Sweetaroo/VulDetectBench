@@ -276,18 +276,3 @@ execute `engine.run()` to perform tasks.
 
 [./demos/gpt.py](./demos/gpt.py) suggests a simple demo to run VulDetectBench using GPT-3.5-Turbo API.
 
-## Reference
-
-If you use or reference our work,please cite our paper.
-
-```bibtex
-@misc{liu2024vuldetectbenchevaluatingdeepcapability,
-      title={VulDetectBench: Evaluating the Deep Capability of Vulnerability Detection with Large Language Models}, 
-      author={Yu Liu and Lang Gao and Mingxin Yang and Yu Xie and Ping Chen and Xiaojin Zhang and Wei Chen},
-      year={2024},
-      eprint={2406.07595},
-      archivePrefix={arXiv},
-      primaryClass={cs.CR},
-      url={https://arxiv.org/abs/2406.07595}, 
-}
-```
